@@ -49,6 +49,7 @@ app.MapGet("/query-string", async context =>
 
 app.MapGet("/html", async context =>
 {
+    context.Response.StatusCode = 200;
     // Adicionado Cookie
     context.Response.Cookies.Append("CookieTeste", "ValorDoCookieTeste");
     var cookieOptions = new CookieOptions
@@ -64,6 +65,7 @@ app.MapGet("/html", async context =>
     {
         await context.Response.WriteAsync($"<b>Chave</b>: {c.Key}, <b>Valor</b>: {c.Value}<br>");
     }
+   
     // await context.Response.WriteAsync("Hello World! " + context.Request.Headers["User-Agent"]);
 });
 
