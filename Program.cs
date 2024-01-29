@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using Microsoft.Extensions.WebEncoders.Testing;
+using Newtonsoft.Json;
 using PdfSharp.Drawing;
 using PdfSharp.Fonts;
 using PdfSharp.Pdf;
@@ -7,7 +6,48 @@ using PdfSharp.Pdf;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-app.MapGet("/", async context =>
+app.MapPost("/body-data", async context =>
+{
+    // Testes no postman só funcionaram ao retirar os espaços e quebra de linha, no formato JSON dessa forma: {"danilo": "teste","parceiro": "daniel"}
+    context.Response.Headers.Append("Content-Type", "text/html; charset=utf-8"); // application/json
+    using (StreamReader stream = new StreamReader(context.Request.Body))
+    {
+        var body = await stream.ReadLineAsync();
+        var data = JsonConvert.DeserializeObject<dynamic>(body);
+
+        await context.Response.WriteAsync("<h1>Parâmetros no http</h1>");
+        await context.Response.WriteAsync($"Parametro danilo = {data.danilo}<br>");
+        await context.Response.WriteAsync($"Parametro parceiro = {data.parceiro}<br>");
+    }
+});
+
+app.MapPost("/form-data", async context =>
+{
+    // Para o teste no Postman, foi preenchido no body os campos do tipo x-www-form-urlencoded
+    // Exibir dados de Cookie na tela web
+    context.Response.Headers.Append("Content-Type", "text/html; charset=utf-8");
+    var dict = context.Request.Form.ToDictionary(x => x.Key, x => x.Value.ToString());
+    string teste = dict["danilo"].ToString();
+    string teste2 = dict["parceiro"].ToString(); // context.Request.Form
+    await context.Response.WriteAsync("<h1>Parâmetros no http</h1>");
+    await context.Response.WriteAsync($"Parametro danilo = {teste}<br>");
+    await context.Response.WriteAsync($"Parametro parceiro = {teste2}<br>");
+    // await context.Response.WriteAsync("Hello World! " + context.Request.Headers["User-Agent"]);
+});
+
+app.MapGet("/query-string", async context =>
+{
+    // Exibir dados de Cookie na tela web
+    context.Response.Headers.Append("Content-Type", "text/html; charset=utf-8");
+    string teste = context.Request.Query["danilo"].ToString();
+    string teste2 = context.Request.Query["parceiro"].ToString();
+    await context.Response.WriteAsync("<h1>Parâmetros no http</h1>");
+    await context.Response.WriteAsync($"Parametro danilo = {teste}<br>");
+    await context.Response.WriteAsync($"Parametro parceiro = {teste2}<br>");
+    // await context.Response.WriteAsync("Hello World! " + context.Request.Headers["User-Agent"]);
+});
+
+app.MapGet("/html", async context =>
 {
     // Adicionado Cookie
     context.Response.Cookies.Append("CookieTeste", "ValorDoCookieTeste");
